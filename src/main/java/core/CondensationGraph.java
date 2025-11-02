@@ -2,40 +2,39 @@ package core;
 
 import java.util.*;
 
-/**
- * Builds condensation (component) graph from original graph and component mapping.
- */
+
 public class CondensationGraph {
     private final Graph compGraph;
     private final int[] vertexToComp; // vertex -> component id
     private final int comps;
 
-    /**
-     * Build condensation DAG.
-     * @param g original graph
-     * @param sccs list of components (each a list of vertices)
-     */
     public CondensationGraph(Graph g, List<List<Integer>> sccs) {
         this.comps = sccs.size();
         this.vertexToComp = new int[g.n()];
         for (int i = 0; i < sccs.size(); i++) {
             for (int v : sccs.get(i)) vertexToComp[v] = i;
         }
-        Graph cg = new Graph(comps);
-        var added = new HashSet<Long>();
+
+        // We'll accumulate edges and pick minimum weight for parallel component edges
+        Map<Long, Double> compEdgeMinWeight = new HashMap<>();
         for (int u = 0; u < g.n(); u++) {
-            for (var e : g.neighbors(u)) {
+            for (var e : g.adjacency().get(u)) {
                 int v = e.to();
                 int cu = vertexToComp[u], cv = vertexToComp[v];
                 if (cu != cv) {
-                    long key = ((long)cu << 32) | (cv & 0xffffffffL);
-                    if (!added.contains(key)) {
-                        // For condensation weights we take min of edges if needed; here we store weight 1.0 by default
-                        cg.addEdge(cu, cv, e.weight());
-                        added.add(key);
-                    }
+                    long key = (((long) cu) << 32) | (cv & 0xffffffffL);
+                    compEdgeMinWeight.merge(key, e.weight(), Double::min);
                 }
             }
+        }
+
+        Graph cg = new Graph(comps);
+        for (var entry : compEdgeMinWeight.entrySet()) {
+            long key = entry.getKey();
+            int cu = (int) (key >> 32);
+            int cv = (int) (key & 0xffffffffL);
+            double w = entry.getValue();
+            cg.addEdge(cu, cv, w);
         }
         this.compGraph = cg;
     }
