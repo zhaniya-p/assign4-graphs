@@ -39,15 +39,3 @@ The codebase is structured into packages, separating implementation logic clearl
 ## Development Notes
 
 The project was developed on a dedicated branch. After implementing the features, the code was committed and pushed to the remote repository. Once all features were confirmed to be working, the branch was merged into the main repository branch.
-
-## How to Run
-
-The project uses Maven. To compile and run from the command line:
-
-mvn clean package
-
-After compilation, execute the program from the target directory or through an IDE such as IntelliJ IDEA.
-
-## Conclusion
-
-This project demonstrates an applied understanding of several graph algorithms. The implementation shows how strongly connected components relate to condensation graphs and how topological sorting supports pathfinding in directed acyclic graphs. The modular structure allows each algorithm to function independently, while still being part of a cohesive graph processing system.
